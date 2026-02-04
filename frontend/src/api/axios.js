@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// axios instance with base url and auth interceptors
 const api = axios.create({
   baseURL: '/api',
 });
