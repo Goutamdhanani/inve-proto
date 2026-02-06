@@ -16,6 +16,7 @@ const useAuthStore = create((set, get) => ({
   user: getStoredUser(),
   isAuthenticated: !!getStoredToken(),
 
+  // persist auth token and user in localStorage on successful login
   login: async (email, password) => {
     const data = await apiPost('/auth/login', { email, password });
     localStorage.setItem('token', data.token);
