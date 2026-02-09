@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  // email is unique and stored lowercase for consistent lookup
   email: { type: String, required: true, unique: true, lowercase: true },
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ['owner', 'manager', 'staff'], default: 'staff' },
