@@ -20,7 +20,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
+        {/* public routes — no authentication required */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />
