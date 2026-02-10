@@ -10,6 +10,7 @@ router.get('/', async (req, res) => {
   try {
     const filter = {};
 
+    // staff and managers are scoped to their assigned store only
     if (req.user.role === 'manager' || req.user.role === 'staff') {
       // Force their storeId — ignore any query param
       if (!req.user.storeId) {
