@@ -7,6 +7,7 @@ const { protect } = require('../middleware/auth');
 const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
 
+// password must have 8+ chars, one uppercase, one digit, one special char
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 const signToken = (user) =>
