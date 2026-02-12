@@ -1,3 +1,4 @@
+// format number as Canadian dollar currency
 export function fmt(n) {
   return Number(n || 0).toLocaleString('en-CA', {
     style: 'currency',
