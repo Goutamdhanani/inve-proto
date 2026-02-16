@@ -6,6 +6,7 @@ const Inventory = require('../models/Inventory');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
 
+// reports are restricted to owner and manager roles only
 router.use(protect, authorize('owner', 'manager'));
 
 // GET /api/reports/dashboard
