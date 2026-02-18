@@ -13,7 +13,8 @@ router.post('/', async (req, res) => {
     if (!saleId || !productId || !quantity || !reason || refundAmount === undefined)
       return res.status(400).json({ message: 'Missing required fields' });
 
-    // Restore stock
+    // restore product quantity to inventory on return
+    // TODO: validate quantity does not exceed original sale
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: 'Product not found' });
     product.quantity += quantity;
