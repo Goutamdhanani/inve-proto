@@ -17,6 +17,7 @@ const saleSchema = new mongoose.Schema({
   employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   customerName: { type: String, default: 'Walk-in' },
   storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store' },
+  // receipt number is auto-assigned and must be unique per transaction
   receiptNumber: { type: String, unique: true, sparse: true },
   createdAt: { type: Date, default: Date.now }
 });
