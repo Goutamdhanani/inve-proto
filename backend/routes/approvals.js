@@ -9,6 +9,7 @@ const { protect, authorize } = require('../middleware/auth');
 router.use(protect);
 
 // GET /api/approvals/pending-users — list pending users (owner + manager)
+// TODO: add pagination for large approval queues
 router.get('/pending-users', authorize('owner', 'manager'), async (req, res) => {
   try {
     const users = await User.find({ status: 'pending' })
