@@ -11,6 +11,7 @@ router.use(protect);
 // GET /api/employees — owner: all (with optional storeId filter), manager: own store
 router.get('/', async (req, res) => {
   try {
+    // filter by role and optionally by store for manager-scoped queries
     let filter = { role: { $in: ['manager', 'staff'] } };
     if (req.user.role === 'manager') {
       if (!req.user.storeId) return res.json({ success: true, data: [] });
