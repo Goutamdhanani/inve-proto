@@ -42,6 +42,7 @@ const useAuthStore = create((set, get) => ({
     set({ token, user, isAuthenticated: true });
   },
 
+  // checkRole — returns true if current user has one of the given roles
   checkRole: (...roles) => {
     const { user } = get();
     return user && roles.includes(user.role);
