@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
       filter.storeId = req.user.storeId;
     } else if (req.user.role === 'owner') {
       // Owner can filter by storeId and/or productId optionally
+      // TODO: add pagination support for large inventory sets
       if (req.query.storeId) filter.storeId = req.query.storeId;
       if (req.query.productId) filter.productId = req.query.productId;
     }
