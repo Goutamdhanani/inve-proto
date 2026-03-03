@@ -9,6 +9,7 @@ export default function NotificationDropdown() {
   const [unreadCount, setUnreadCount] = useState(0);
   const ref = useRef(null);
 
+  // poll backend every 30 seconds for new notifications
   const loadNotifications = useCallback(async () => {
     try {
       const data = await apiGet('/notifications');
