@@ -77,7 +77,7 @@ function renderTable(products) {
 
     const actions = isManager ? `
       <button class="btn btn-outline btn-sm" onclick="openEdit('${p._id}')"><i class="fas fa-pencil"></i></button>
-      <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p._id}','${p.name.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+      <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p._id}', this)"><i class="fas fa-trash"></i></button>
     ` : '<span style="color:var(--gray);font-size:0.8rem">View only</span>';
 
     return `
@@ -130,7 +130,9 @@ function openEdit(id) {
   if (product) openModal('Edit Product', product);
 }
 
-async function deleteProduct(id, name) {
+async function deleteProduct(id, btnEl) {
+  const product = allProducts.find(p => p._id === id);
+  const name = product ? product.name : 'this product';
   if (!confirm(`Delete "${name}"?\n\nManagers will submit an approval request. Owners will delete immediately.`)) return;
   try {
     const res = await API.delete(`/products/${id}`);
