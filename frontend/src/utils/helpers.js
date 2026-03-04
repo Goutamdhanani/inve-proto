@@ -31,6 +31,10 @@ export function getDayKey(date) {
   return new Date(date).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
 }
 
+export function fmtPercent(value) {
+  return `${(Number(value || 0) * 100).toFixed(1)}%`;
+}
+
 export function getLast7Days() {
   const days = [];
   for (let i = 6; i >= 0; i--) {
