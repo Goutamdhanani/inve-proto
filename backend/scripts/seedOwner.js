@@ -11,20 +11,32 @@ const seedOwner = async () => {
 
     const User = require('../models/User');
 
-    const ownerExists = await User.findOne({ role: 'owner' });
-    if (ownerExists) {
-      console.log('Owner account already exists. Skipping seed.');
+    const email = (process.env.OWNER_EMAIL || 'owner@inventoryavengers.com').toLowerCase();
+    const password = process.env.OWNER_PASSWORD || 'OwnerSecure#2024';
+
+    const existingOwner = await User.findOne({ role: 'owner' });
+
+    if (existingOwner) {
+      // Verify the existing owner can actually log in (detect double-hash corruption)
+      const canLogin = await bcrypt.compare(password, existingOwner.passwordHash);
+      if (canLogin) {
+        console.log('Owner account already exists and is valid. Skipping seed.');
+        return;
+      }
+      // Owner exists but password is corrupted (double-hashed) — fix it
+      console.log('Owner account found but password is corrupted. Resetting password...');
+      existingOwner.passwordHash = password; // plain text — pre-save hook will hash
+      existingOwner.status = 'approved';
+      await existingOwner.save();
+      console.log(`Owner account password reset for: ${existingOwner.email}`);
       return;
     }
 
-    const email = process.env.OWNER_EMAIL || 'owner@inventoryavengers.com';
-    const password = process.env.OWNER_PASSWORD || 'OwnerSecure#2024';
-    const passwordHash = await bcrypt.hash(password, 10);
-
+    // No owner exists — create one
     await User.create({
       name: 'Owner',
       email,
-      passwordHash,
+      passwordHash: password, // plain text — pre-save hook will hash
       role: 'owner',
       status: 'approved',
       mustChangePassword: true
