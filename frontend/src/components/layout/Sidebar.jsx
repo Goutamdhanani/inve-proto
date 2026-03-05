@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import {
   FiGrid, FiPackage, FiShoppingCart, FiRotateCcw,
-  FiBarChart2, FiCheckSquare, FiShield,
+  FiBarChart2, FiCheckSquare, FiShield, FiMapPin,
+  FiUsers, FiUserCheck, FiActivity,
 } from 'react-icons/fi';
 import useAuthStore from '../../store/authStore.js';
 
@@ -12,6 +13,12 @@ const NAV_ITEMS = [
   { to: '/returns',   icon: FiRotateCcw,   label: 'Returns' },
   { to: '/reports',   icon: FiBarChart2,   label: 'Reports', roles: ['owner', 'manager'] },
   { to: '/approvals', icon: FiCheckSquare, label: 'Approvals' },
+  // Owner-specific
+  { to: '/stores',       icon: FiMapPin,    label: 'Stores',             roles: ['owner'] },
+  { to: '/audit-log',    icon: FiActivity,  label: 'Audit Log',          roles: ['owner'] },
+  // Owner + Manager
+  { to: '/employees',      icon: FiUsers,     label: 'Employees',          roles: ['owner', 'manager'] },
+  { to: '/user-approvals', icon: FiUserCheck, label: 'User Approvals',     roles: ['owner', 'manager'] },
 ];
 
 export default function Sidebar() {

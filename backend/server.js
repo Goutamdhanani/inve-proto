@@ -7,7 +7,10 @@ const connectDB = require('./config/db');
 
 const app = express();
 
-connectDB();
+connectDB().then(async () => {
+  const seedOwner = require('./scripts/seedOwner');
+  await seedOwner();
+});
 
 // Rate limiting
 const generalLimiter = rateLimit({
@@ -39,6 +42,9 @@ app.use('/api/reports', require('./routes/reports'));
 app.use('/api/approvals', require('./routes/approvals'));
 app.use('/api/stores', require('./routes/stores'));
 app.use('/api/inventory', require('./routes/inventory'));
+app.use('/api/employees', require('./routes/employees'));
+app.use('/api/audit-logs', require('./routes/auditLogs'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Serve frontend: production build (dist/) takes precedence; fall back to source
 const distPath = path.join(__dirname, '../frontend/dist');
@@ -56,6 +62,3 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

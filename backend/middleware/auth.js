@@ -5,21 +5,39 @@ const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Not authorized, no token' });
+      return res.status(401).json({ success: false, message: 'Not authorized, no token' });
     }
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+
+    // Fetch full user from DB to verify status and get latest data
+    const user = await User.findById(decoded.id).select('-passwordHash');
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
+    }
+    if (user.status !== 'approved') {
+      return res.status(403).json({ success: false, message: 'Account is not approved' });
+    }
+
+    req.user = {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      storeId: user.storeId ? user.storeId.toString() : null,
+      mustChangePassword: user.mustChangePassword
+    };
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Not authorized, token invalid' });
+    return res.status(401).json({ success: false, message: 'Not authorized, token invalid' });
   }
 };
 
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Forbidden: insufficient permissions' });
+      return res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
     }
     next();
   };
@@ -31,10 +49,10 @@ const authorizeStore = (req, res, next) => {
   const requestedStoreId = req.query.storeId || (req.body && req.body.storeId);
   if (!requestedStoreId) return next(); // no store filter requested
   if (!req.user.storeId) {
-    return res.status(403).json({ message: 'Forbidden: no store assigned' });
+    return res.status(403).json({ success: false, message: 'Forbidden: no store assigned' });
   }
   if (String(req.user.storeId) !== String(requestedStoreId)) {
-    return res.status(403).json({ message: 'Forbidden: cross-store access denied' });
+    return res.status(403).json({ success: false, message: 'Forbidden: cross-store access denied' });
   }
   next();
 };

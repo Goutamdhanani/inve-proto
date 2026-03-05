@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiPost } from '../api/axios.js';
+import { apiPost, apiPut } from '../api/axios.js';
 
 const getStoredToken = () => localStorage.getItem('token');
 const getStoredUser = () => {
@@ -24,6 +24,11 @@ const useAuthStore = create((set, get) => ({
     return data;
   },
 
+  register: async (name, email, password) => {
+    const data = await apiPost('/auth/register', { name, email, password });
+    return data;
+  },
+
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -39,6 +44,18 @@ const useAuthStore = create((set, get) => ({
   checkRole: (...roles) => {
     const { user } = get();
     return user && roles.includes(user.role);
+  },
+
+  changePassword: async (currentPassword, newPassword) => {
+    const data = await apiPut('/auth/change-password', { currentPassword, newPassword });
+    // Clear mustChangePassword flag in stored user
+    const { user } = get();
+    if (user) {
+      const updatedUser = { ...user, mustChangePassword: false };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      set({ user: updatedUser });
+    }
+    return data;
   },
 }));
 
