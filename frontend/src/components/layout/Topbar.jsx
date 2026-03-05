@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
 import { RoleBadge } from '../ui/Badge.jsx';
+import NotificationDropdown from '../NotificationDropdown.jsx';
 import useAuthStore from '../../store/authStore.js';
 
 const PAGE_TITLES = {
@@ -10,6 +11,10 @@ const PAGE_TITLES = {
   '/returns':   'Returns',
   '/reports':   'Reports',
   '/approvals': 'Approvals',
+  '/stores':    'Stores',
+  '/employees': 'Employee Management',
+  '/user-approvals': 'User Approvals',
+  '/audit-log': 'Audit Log',
 };
 
 export default function Topbar() {
@@ -22,7 +27,11 @@ export default function Topbar() {
     navigate('/login');
   };
 
-  const title = PAGE_TITLES[location.pathname] || 'Dashboard';
+  // Handle dynamic paths like /employees/:id
+  const pathKey = Object.keys(PAGE_TITLES).find((k) =>
+    location.pathname === k || location.pathname.startsWith(k + '/')
+  );
+  const title = PAGE_TITLES[pathKey] || 'Dashboard';
 
   return (
     <header className="fixed top-0 left-[250px] right-0 h-[60px] bg-white border-b border-slate-100 flex items-center justify-between px-6 z-30">
@@ -30,6 +39,7 @@ export default function Topbar() {
 
       <div className="flex items-center gap-3">
         {user && <RoleBadge role={user.role} />}
+        <NotificationDropdown />
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
             {user?.name?.[0]?.toUpperCase() || 'U'}

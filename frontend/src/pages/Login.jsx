@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiEye, FiEyeOff, FiShield, FiDatabase, FiLogIn } from 'react-icons/fi';
+import { useNavigate, Link } from 'react-router-dom';
+import { FiEye, FiEyeOff, FiShield, FiLogIn } from 'react-icons/fi';
 import useAuthStore from '../store/authStore.js';
-import { apiGet, apiPost } from '../api/axios.js';
 import Alert from '../components/ui/Alert.jsx';
 
 export default function Login() {
@@ -13,7 +12,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [alert, setAlert] = useState(null); // { message, type }
 
   // Already logged in → redirect
@@ -39,29 +37,6 @@ export default function Login() {
     }
   };
 
-  const handleForgot = async (e) => {
-    e.preventDefault();
-    if (!email) return showAlert('Enter your email first', 'warning');
-    try {
-      const data = await apiPost('/auth/forgot', { email });
-      showAlert(data.message, 'success');
-    } catch (err) {
-      showAlert(err.response?.data?.message || err.message);
-    }
-  };
-
-  const handleSeed = async () => {
-    setSeeding(true);
-    try {
-      await apiGet('/auth/seed');
-      showAlert('Demo users created! You can now log in.', 'success');
-    } catch (err) {
-      showAlert(err.response?.data?.message || err.message);
-    } finally {
-      setSeeding(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
@@ -84,7 +59,7 @@ export default function Login() {
             <input
               type="email"
               className="form-control"
-              placeholder="owner@demo.com"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -113,16 +88,6 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="text-right">
-            <button
-              type="button"
-              onClick={handleForgot}
-              className="text-sm text-indigo-600 hover:text-indigo-700"
-            >
-              Forgot password?
-            </button>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -137,27 +102,12 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Demo credentials */}
-        <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-          <p className="text-xs font-semibold text-slate-500 mb-2">Demo Credentials</p>
-          <div className="text-xs text-slate-600 space-y-1">
-            <div><strong>Owner:</strong> owner@demo.com / password123</div>
-            <div><strong>Manager:</strong> manager@demo.com / password123</div>
-            <div><strong>Staff:</strong> staff@demo.com / password123</div>
-          </div>
-          <button
-            onClick={handleSeed}
-            disabled={seeding}
-            className="btn btn-secondary btn-sm w-full justify-center mt-3"
-          >
-            {seeding ? (
-              <span className="w-3 h-3 border border-slate-400 border-t-slate-700 rounded-full animate-spin" />
-            ) : (
-              <FiDatabase size={13} />
-            )}
-            {seeding ? 'Seeding...' : 'Initialize Demo Data'}
-          </button>
-        </div>
+        <p className="mt-6 text-center text-sm text-slate-500">
+          Don&apos;t have an account?{' '}
+          <Link to="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );

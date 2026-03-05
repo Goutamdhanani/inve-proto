@@ -1,9 +1,85 @@
 const express = require('express');
 const router = express.Router();
 const Approval = require('../models/Approval');
+const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
+const Notification = require('../models/Notification');
 const { protect, authorize } = require('../middleware/auth');
 
 router.use(protect);
+
+// GET /api/approvals/pending-users — list pending users (owner + manager)
+router.get('/pending-users', authorize('owner', 'manager'), async (req, res) => {
+  try {
+    const users = await User.find({ status: 'pending' })
+      .select('-passwordHash')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, data: users });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT /api/approvals/users/:id/approve — approve user (owner + manager)
+router.put('/users/:id/approve', authorize('owner', 'manager'), async (req, res) => {
+  try {
+    const { role, storeId } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    user.status = 'approved';
+    if (role) user.role = role;
+    if (storeId) user.storeId = storeId;
+    await user.save({ validateBeforeSave: false });
+
+    await AuditLog.create({
+      actorId: req.user.id,
+      targetId: user._id,
+      action: 'approve_user',
+      metadata: { role: user.role, storeId: user.storeId },
+      storeId: user.storeId || null
+    });
+
+    await Notification.create({
+      userId: user._id,
+      type: 'account_approved',
+      title: 'Account Approved',
+      message: 'Your account has been approved. You can now log in.'
+    });
+
+    res.json({ success: true, message: 'User approved', data: { id: user._id, status: user.status } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT /api/approvals/users/:id/reject — reject user (owner + manager)
+router.put('/users/:id/reject', authorize('owner', 'manager'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    user.status = 'rejected';
+    await user.save({ validateBeforeSave: false });
+
+    await AuditLog.create({
+      actorId: req.user.id,
+      targetId: user._id,
+      action: 'reject_user'
+    });
+
+    await Notification.create({
+      userId: user._id,
+      type: 'account_rejected',
+      title: 'Account Rejected',
+      message: 'Your account registration has been rejected. Please contact an administrator.'
+    });
+
+    res.json({ success: true, message: 'User rejected' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // GET /api/approvals
 router.get('/', async (req, res) => {

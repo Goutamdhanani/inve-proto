@@ -7,6 +7,8 @@ const storeSchema = new mongoose.Schema(
     code: { type: String, required: true, unique: true, uppercase: true },
     phone: { type: String, default: '' },
     email: { type: String, default: '' },
+    managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now }
   }

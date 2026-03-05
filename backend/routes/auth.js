@@ -1,14 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const Store = require('../models/Store');
+const { protect } = require('../middleware/auth');
+const AuditLog = require('../models/AuditLog');
+const Notification = require('../models/Notification');
+
+const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 const signToken = (user) =>
   jwt.sign(
     { id: user._id, name: user.name, email: user.email, role: user.role, storeId: user.storeId || null },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   );
 
 // POST /api/auth/login
@@ -16,112 +21,145 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
-      return res.status(400).json({ message: 'Email and password required' });
+      return res.status(400).json({ success: false, message: 'Email and password required' });
 
-    let user = await User.findOne({ email: email.toLowerCase() });
-
-    // Auto-create demo owner if not found
-    if (!user && email === 'owner@demo.com' && password === 'password123') {
-      user = await User.create({
-        name: 'Demo Owner',
-        email: 'owner@demo.com',
-        passwordHash: 'password123',
-        role: 'owner'
-      });
-    }
-
-    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
     const isMatch = await user.matchPassword(password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+    if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
-    if (user.status === 'inactive')
-      return res.status(403).json({ message: 'Account is inactive' });
+    if (user.status === 'pending')
+      return res.status(403).json({ success: false, message: 'Your account is pending approval' });
+
+    if (user.status === 'rejected')
+      return res.status(403).json({ success: false, message: 'Your account registration was rejected' });
+
+    if (user.status === 'suspended')
+      return res.status(403).json({ success: false, message: 'Your account has been suspended' });
+
+    if (user.status === 'deactivated')
+      return res.status(403).json({ success: false, message: 'Your account has been deactivated' });
+
+    if (user.status !== 'approved')
+      return res.status(403).json({ success: false, message: 'Account is not approved' });
+
+    user.lastLogin = new Date();
+    await user.save({ validateBeforeSave: false });
 
     const token = signToken(user);
     res.json({
+      success: true,
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, storeId: user.storeId || null }
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        storeId: user.storeId || null,
+        mustChangePassword: user.mustChangePassword
+      }
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
     if (!name || !email || !password)
-      return res.status(400).json({ message: 'Name, email, and password required' });
+      return res.status(400).json({ success: false, message: 'Name, email, and password required' });
+
+    if (!PASSWORD_REGEX.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters with one uppercase letter, one number, and one special character'
+      });
+    }
 
     const existing = await User.findOne({ email: email.toLowerCase() });
-    if (existing) return res.status(400).json({ message: 'Email already in use' });
+    if (existing) return res.status(400).json({ success: false, message: 'Email already in use' });
 
     const user = await User.create({
       name,
       email,
       passwordHash: password,
-      role: role || 'staff'
+      role: 'staff',
+      status: 'pending'
     });
 
-    const token = signToken(user);
+    // Notify owners and managers about new registration
+    try {
+      const managers = await User.find({ role: { $in: ['owner', 'manager'] }, status: 'approved' }).select('_id');
+      const notifications = managers.map((m) => ({
+        userId: m._id,
+        type: 'new_registration',
+        title: 'New Registration Request',
+        message: `${user.name} (${user.email}) has registered and is awaiting approval.`,
+        metadata: { userId: user._id }
+      }));
+      if (notifications.length) await Notification.insertMany(notifications);
+    } catch (_) { /* non-blocking */ }
+
     res.status(201).json({
-      token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, storeId: user.storeId || null }
+      success: true,
+      message: 'Registration successful. Your account is pending approval.',
+      user: { id: user._id, name: user.name, email: user.email, status: user.status }
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/auth/logout
+router.post('/logout', protect, (req, res) => {
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// PUT /api/auth/change-password
+router.put('/change-password', protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ success: false, message: 'Current password and new password required' });
+
+    if (!PASSWORD_REGEX.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 8 characters with one uppercase letter, one number, and one special character'
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+
+    user.passwordHash = newPassword;
+    user.mustChangePassword = false;
+    await user.save();
+
+    await AuditLog.create({
+      actorId: req.user.id,
+      targetId: req.user.id,
+      action: 'change_password',
+      storeId: req.user.storeId || null
+    });
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
 // POST /api/auth/forgot
 router.post('/forgot', (req, res) => {
-  res.json({ message: 'Password reset email sent (demo)' });
-});
-
-// GET /api/auth/seed
-router.get('/seed', async (req, res) => {
-  try {
-    // Ensure a default store exists
-    let defaultStore = await Store.findOne({ code: 'MAIN' });
-    if (!defaultStore) {
-      defaultStore = await Store.create({
-        name: 'Main Store',
-        code: 'MAIN',
-        address: '123 Main Street',
-        phone: '555-0100',
-        email: 'main@demo.com'
-      });
-    }
-
-    const demoUsers = [
-      { name: 'Demo Owner', email: 'owner@demo.com', passwordHash: 'password123', role: 'owner', storeId: null },
-      { name: 'Demo Manager', email: 'manager@demo.com', passwordHash: 'password123', role: 'manager', storeId: defaultStore._id },
-      { name: 'Demo Staff', email: 'staff@demo.com', passwordHash: 'password123', role: 'staff', storeId: defaultStore._id }
-    ];
-
-    const results = [];
-    for (const u of demoUsers) {
-      const exists = await User.findOne({ email: u.email });
-      if (!exists) {
-        const created = await User.create(u);
-        results.push(`Created: ${created.email}`);
-      } else {
-        // Update storeId if missing
-        if (!exists.storeId && u.storeId) {
-          exists.storeId = u.storeId;
-          await exists.save({ validateBeforeSave: false });
-        }
-        results.push(`Already exists: ${u.email}`);
-      }
-    }
-
-    res.json({ message: 'Seed complete', results, storeId: defaultStore._id });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  res.json({ success: true, message: 'Password reset email sent (not implemented)' });
 });
 
 module.exports = router;
+
 

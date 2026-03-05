@@ -6,8 +6,14 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ['owner', 'manager', 'staff'], default: 'staff' },
-  status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'suspended', 'deactivated'],
+    default: 'pending'
+  },
   storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store' },
+  mustChangePassword: { type: Boolean, default: false },
+  lastLogin: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
