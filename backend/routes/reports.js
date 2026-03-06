@@ -10,6 +10,7 @@ const { protect, authorize } = require('../middleware/auth');
 router.use(protect, authorize('owner', 'manager'));
 
 // GET /api/reports/dashboard
+// TODO: add export to csv for date-range sales reports
 router.get('/dashboard', async (req, res) => {
   try {
     const { storeId } = req.query;
