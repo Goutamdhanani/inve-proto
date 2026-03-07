@@ -1,111 +1,121 @@
 # Building the StockPilot Windows Installer
 
-## Overview
+## Quick Start (Recommended — Python GUI)
 
-This folder contains everything needed to produce a single-file Windows
-installer: **`StockPilotSetup.exe`**.
+The simplest way to produce `StockPilotSetup.exe` is the **Python + PyInstaller**
+route. No Inno Setup required.
 
-The installer:
-- Silently installs **Node.js LTS** and **MongoDB Community Server** if they
-  are not already present on the target machine.
-- Copies the full project to `C:\Program Files\StockPilot`.
-- Runs `npm install` in the backend and frontend.
-- Runs `npm run build` (Vite) to produce `frontend/dist`.
-- Creates a **Desktop shortcut** and a **Start Menu** entry.
-- Launches the application on first run and opens
-  `http://localhost:5000` in the default browser.
+### 1 — Install Python (if needed)
+
+Download Python 3.8+ from <https://python.org>.  
+**Tick "Add Python to PATH"** during installation.
+
+### 2 — Run the build script
+
+From a Windows command prompt (or Explorer → double-click):
+
+```bat
+cd installer
+build_exe.bat
+```
+
+The script will:
+1. Install PyInstaller via `pip`
+2. Bundle `backend/`, `frontend/`, `.env.example`, and `start.bat` into the exe
+3. Write `installer\dist\StockPilotSetup.exe`
+
+### 3 — Distribute
+
+Give `StockPilotSetup.exe` to end users. They double-click it and get a
+full GUI wizard:
+
+| Step | What happens |
+|------|--------------|
+| Welcome screen | User can change the install folder |
+| Node.js | Detected by running `node --version`; downloaded and silently installed if missing |
+| MongoDB | Detected via registry; downloaded and silently installed if missing |
+| Files | `backend/` and `frontend/` extracted to the chosen folder |
+| npm | `npm install` runs in both `backend/` and `frontend/` |
+| Build | `npm run build` (Vite) produces `frontend/dist/` |
+| Shortcuts | Desktop + Start Menu entries created |
+| Finish | "🚀 Launch StockPilot" button opens the app in the browser |
 
 ---
 
-## Folder Structure
+## Installer Files
 
 ```
 installer/
-├── installer.iss          ← Inno Setup script (edit version/metadata here)
-├── setup.bat              ← npm install + frontend build (run at install time)
-├── start.bat              ← Launch script (copied to the install dir)
+├── gui_installer.py       ← Python tkinter GUI wizard  ← PRIMARY
+├── build_exe.bat          ← Compiles gui_installer.py → StockPilotSetup.exe
+├── installer.iss          ← Inno Setup 6 script (alternative path)
+├── setup.bat              ← npm install + build (run at install time)
+├── start.bat              ← Launcher (shortcut target in install dir)
 ├── prereqs/
-│   ├── README.md          ← Download instructions for bundled installers
-│   ├── node_installer.msi ← Node.js LTS x64 MSI (YOU must download this)
-│   └── mongo_installer.msi← MongoDB Community MSI (YOU must download this)
+│   └── README.md          ← Download links for Node.js + MongoDB MSIs
 └── README-installer.md    ← This file
 ```
 
 ---
 
-## Step-by-step Build Instructions
+## Alternative: Inno Setup Path
 
-### 1 — Install Inno Setup
+If you prefer Inno Setup:
 
-Download and install **Inno Setup 6** (free) from:  
+### 1 — Install Inno Setup 6
+
 <https://jrsoftware.org/isdl.php>
 
-### 2 — Download the prerequisite installers
+### 2 — Download prerequisite MSIs
 
-Follow the instructions in [`prereqs/README.md`](prereqs/README.md), or run
-the PowerShell helper provided there.
+Follow `prereqs/README.md`, or run in PowerShell from `installer/prereqs/`:
 
-The two files must be placed at exactly these paths relative to `installer.iss`:
-
+```powershell
+# Node.js 20 LTS (x64 MSI)
+Invoke-WebRequest "https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi" -OutFile node_installer.msi
+# MongoDB 7 Community (x64 MSI)
+Invoke-WebRequest "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-7.0.5-signed.msi" -OutFile mongo_installer.msi
 ```
-installer/prereqs/node_installer.exe
-installer/prereqs/mongo_installer.msi
-```
 
-### 3 — Compile the installer
+### 3 — Compile
 
-**Option A — GUI:**
-1. Open `installer.iss` in the Inno Setup Compiler IDE.
-2. Press `F9` or click **Build → Compile**.
-3. The output file is written to `installer/dist/StockPilotSetup.exe`.
-
-**Option B — Command line (CI/CD):**
 ```bat
 iscc installer\installer.iss
 ```
 
-The `iscc.exe` compiler is located in the Inno Setup installation directory
-(typically `C:\Program Files (x86)\Inno Setup 6\iscc.exe`).
+Output: `installer\dist\StockPilotSetup.exe`
 
 ---
 
-## End-user Experience
+## End-user Experience (both paths produce the same result)
 
-1. User downloads `StockPilotSetup.exe` and double-clicks it.
-2. The installer wizard opens (modern style, UAC prompt for admin rights).
-3. It silently installs Node.js and MongoDB if needed.
-4. Project files are copied to `C:\Program Files\StockPilot`.
-5. `setup.bat` runs `npm install` (backend & frontend) and `npm run build`.
-6. A Desktop shortcut and Start Menu entry are created.
-7. The user clicks **Finish** → the backend server starts and the browser
-   opens at `http://localhost:5000`.
+1. User runs `StockPilotSetup.exe` as administrator.
+2. Wizard guides through installation with a progress bar and live log.
+3. After installation, app starts and browser opens at `http://localhost:5000`.
 
 ---
 
-## Configuration (``.env``)
+## Configuration (`.env`)
 
-The installer copies `.env.example` to `C:\Program Files\StockPilot\.env`
-(only if `.env` does not already exist).  
-The user should edit this file to set:
+The installer writes a `.env` to the install folder on first run.  
+Default values work with a local MongoDB installation:
 
-| Variable | Description |
-|----------|-------------|
-| `MONGO_URI` | MongoDB connection string (default: local) |
-| `JWT_SECRET` | Secret key for JWT tokens |
-| `OWNER_EMAIL` / `OWNER_PASSWORD` | Initial owner credentials |
-
-For a local MongoDB installation the URI is typically:
-```
-MONGO_URI=mongodb://localhost:27017/inventory-avengers
-```
+| Variable | Default |
+|----------|---------|
+| `MONGO_URI` | `mongodb://localhost:27017/inventory-avengers` |
+| `JWT_SECRET` | Auto-generated unique 64-char hex value per installation |
+| `REFRESH_TOKEN_SECRET` | Auto-generated unique 64-char hex value per installation |
+| `OWNER_PASSWORD` | `OwnerSecure#2024` |
 
 ---
 
 ## Uninstall
 
-The installer registers a standard Windows uninstaller.  
-Use **Settings → Apps** or **Control Panel → Programs and Features** to
-uninstall **StockPilot (Inventory Avengers)**.
+**Python GUI installer** — run the installer again and choose a different
+directory, or delete the install folder manually.
+
+**Inno Setup installer** — use **Settings → Apps** or
+**Control Panel → Programs and Features**.
 
 ---
 
@@ -113,7 +123,8 @@ uninstall **StockPilot (Inventory Avengers)**.
 
 | Problem | Solution |
 |---------|----------|
-| `npm` not found during installation | Node.js installer may still be setting `PATH`; reboot and re-run `setup.bat` manually |
-| MongoDB service not starting | Ensure the MongoDB service is registered: run `net start MongoDB` as admin |
-| Port 5000 already in use | Edit `.env` and change `PORT`, then restart via `start.bat` |
-| `install.log` shows build errors | Check `C:\Program Files\StockPilot\install.log` for full npm output |
+| `npm not found` after silent Node.js install | Reboot Windows (PATH is updated on reboot) then re-run `start.bat` |
+| MongoDB service not starting | Run `net start MongoDB` in an admin prompt |
+| Port 5000 already in use | Edit `.env` → set `PORT=5001`, restart via `start.bat` |
+| `install.log` shows build errors | Open `C:\Program Files\StockPilot\install.log` |
+| PyInstaller build fails | Run `pip install --upgrade pyinstaller` then retry `build_exe.bat` |
