@@ -3,3 +3,8 @@ node_modules/
 *.log
 frontend/node_modules/
 frontend/dist/
+
+# Windows installer build artifacts and bundled prerequisites
+installer/dist/
+installer/prereqs/*.exe
+installer/prereqs/*.msi
