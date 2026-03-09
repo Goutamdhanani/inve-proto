@@ -44,7 +44,7 @@ const authorize = (...roles) => {
   };
 };
 
-// Middleware that allows owner to bypass store scope; manager/staff must match their storeId
+// authorizeStore — owner bypasses store scope; manager/staff must match their assigned storeId
 const authorizeStore = (req, res, next) => {
   if (req.user.role === 'owner') return next();
   const requestedStoreId = req.query.storeId || (req.body && req.body.storeId);
