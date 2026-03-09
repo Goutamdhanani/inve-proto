@@ -38,6 +38,7 @@ router.post('/', async (req, res) => {
 // GET /api/returns
 router.get('/', async (req, res) => {
   try {
+    // TODO: filter returns by store when multi-store support is added
     const returns = await Return.find()
       .populate('saleId')
       .populate('productId', 'name')
