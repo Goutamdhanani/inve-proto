@@ -100,7 +100,7 @@ export default function App() {
           }
         />
 
-        {/* Catch-all */}
+        {/* catch-all — redirect unknown routes back to dashboard */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
