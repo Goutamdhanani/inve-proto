@@ -20,7 +20,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
+        {/* public routes — no authentication required */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />
@@ -100,7 +100,7 @@ export default function App() {
           }
         />
 
-        {/* Catch-all */}
+        {/* catch-all — redirect unknown routes back to dashboard */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>

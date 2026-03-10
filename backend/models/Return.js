@@ -6,6 +6,7 @@ const returnSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   reason: {
     type: String,
+    // reason must match one of the allowed return reason categories
     enum: ['damaged', 'wrong item', 'expired', 'other'],
     required: true
   },

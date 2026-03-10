@@ -6,7 +6,8 @@ const { protect, authorize } = require('../middleware/auth');
 
 router.use(protect);
 
-// Helper: generate SKU
+// auto-generate a unique SKU if not provided by the user
+// helper: generate SKU
 function generateSKU() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let sku = 'SKU-';

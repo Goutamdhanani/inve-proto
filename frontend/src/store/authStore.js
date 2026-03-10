@@ -16,6 +16,7 @@ const useAuthStore = create((set, get) => ({
   user: getStoredUser(),
   isAuthenticated: !!getStoredToken(),
 
+  // persist auth token and user in localStorage on successful login
   login: async (email, password) => {
     const data = await apiPost('/auth/login', { email, password });
     localStorage.setItem('token', data.token);
@@ -41,6 +42,7 @@ const useAuthStore = create((set, get) => ({
     set({ token, user, isAuthenticated: true });
   },
 
+  // checkRole — returns true if current user has one of the given roles
   checkRole: (...roles) => {
     const { user } = get();
     return user && roles.includes(user.role);

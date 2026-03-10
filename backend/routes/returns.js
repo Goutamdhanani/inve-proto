@@ -13,7 +13,8 @@ router.post('/', async (req, res) => {
     if (!saleId || !productId || !quantity || !reason || refundAmount === undefined)
       return res.status(400).json({ message: 'Missing required fields' });
 
-    // Restore stock
+    // restore product quantity to inventory on return
+    // TODO: validate quantity does not exceed original sale
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: 'Product not found' });
     product.quantity += quantity;
@@ -37,6 +38,7 @@ router.post('/', async (req, res) => {
 // GET /api/returns
 router.get('/', async (req, res) => {
   try {
+    // TODO: filter returns by store when multi-store support is added
     const returns = await Return.find()
       .populate('saleId')
       .populate('productId', 'name')

@@ -1,3 +1,4 @@
+// format number as Canadian dollar currency
 export function fmt(n) {
   return Number(n || 0).toLocaleString('en-CA', {
     style: 'currency',
@@ -28,6 +29,10 @@ export function fmtShortDate(d) {
 
 export function getDayKey(date) {
   return new Date(date).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+}
+
+export function fmtPercent(value) {
+  return `${(Number(value || 0) * 100).toFixed(1)}%`;
 }
 
 export function getLast7Days() {

@@ -12,7 +12,7 @@ connectDB().then(async () => {
   await seedOwner();
 });
 
-// Rate limiting
+// rate limiting — general: 500 req/15 min, auth: 20 req/15 min
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 500,

@@ -29,6 +29,7 @@ const DEMO_USERS = [
   }
 ];
 
+// seeds the default owner account and demo users on first startup
 const seedOwner = async () => {
   const shouldConnect = mongoose.connection.readyState === 0;
   try {

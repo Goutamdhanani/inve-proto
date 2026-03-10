@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// establish mongodb connection with error handling
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI);

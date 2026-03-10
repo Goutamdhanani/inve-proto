@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema(
     costPrice: { type: Number, required: true },
     sellingPrice: { type: Number, required: true },
     quantity: { type: Number, required: true, default: 0 },
-    threshold: { type: Number, default: 10 },
+    threshold: { type: Number, default: 5 },
     sku: { type: String, unique: true, sparse: true },
     barcode: { type: String, default: '' },
     barcodeType: { type: String, default: 'CODE128' },

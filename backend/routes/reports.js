@@ -6,9 +6,11 @@ const Inventory = require('../models/Inventory');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
 
+// reports are restricted to owner and manager roles only
 router.use(protect, authorize('owner', 'manager'));
 
 // GET /api/reports/dashboard
+// TODO: add export to csv for date-range sales reports
 router.get('/dashboard', async (req, res) => {
   try {
     const { storeId } = req.query;
