@@ -36,3 +36,4 @@ date,hours,person,task,commit_hash
 2026-03-09,3.0,Priyansh,"improved authorizestore middleware comment",86e8a31
 2026-03-09,2.5,Jashan,"added multi-store todo in returns list route",1c60a92
 2026-03-10,2.0,Neel,"updated catch-all route comment in app router",daad2a5
+2026-03-10,2.0,Neel,"fixed color shade ordering in tailwind theme config",7116426
