@@ -1,0 +1,38 @@
+date,hours,person,task,commit_hash
+2026-02-03,2.5,Priyansh,"added db connection setup comment",585cfc8
+2026-02-03,2.0,Neel,"added dark primary color variant to theme",ac57d54
+2026-02-04,3.0,Jashan,"added axios instance comment in api setup",6d36de5
+2026-02-05,3.0,Priyansh,"added token extraction comment in protect middleware",eb09cd3
+2026-02-06,2.0,Neel,"added root mount comment in main entry file",c0925e8
+2026-02-06,2.5,Jashan,"added login persistence comment in authstore",4c00a45
+2026-02-09,2.0,Priyansh,"added email field comment in user model",dd9e19c
+2026-02-10,2.5,Neel,"updated public routes comment in app router",4bdb6cf
+2026-02-10,3.5,Jashan,"added store scoping comment in inventory route",eb07905
+2026-02-11,3.0,Priyansh,"added password regex comment in auth route",2a04c85
+2026-02-12,2.0,Neel,"added tailwind directives comment in index css",df80e08
+2026-02-12,2.5,Jashan,"added currency format comment in helpers",ad93502
+2026-02-13,2.0,Priyansh,"lowered default low stock threshold in product model",767a130
+2026-02-16,3.0,Priyansh,"clarified rate limiter comment in server config",66463af
+2026-02-16,3.5,Jashan,"added access control comment in reports route",880289a
+2026-02-17,2.0,Neel,"added auth redirect comment in protected route",2beda75
+2026-02-18,3.0,Jashan,"added stock restore comment in returns route",172caab
+2026-02-19,2.5,Priyansh,"added receipt number comment in sale model",58ff238
+2026-02-20,2.0,Neel,"added api proxy comment in vite config",d5da6b8
+2026-02-20,2.5,Jashan,"added 401 redirect comment in axios interceptor",6e0f332
+2026-02-23,3.0,Priyansh,"added filter comment in employees route",2b48f9a
+2026-02-23,2.0,Jashan,"added pagination todo in approvals route",8d5c54a
+2026-02-24,2.5,Neel,"added role redirect comment in role route component",dd1eb67
+2026-02-25,3.5,Priyansh,"added threshold comment in inventory model",db6b3c2
+2026-02-25,2.0,Jashan,"added checkRole comment in authstore",164268d
+2026-02-26,2.0,Neel,"added viewport meta comment in index html",6d46b9d
+2026-02-27,2.5,Priyansh,"added seed function comment in seedowner script",dd67e09
+2026-03-02,3.0,Priyansh,"updated sku generation comment in products route",d1dda0f
+2026-03-02,2.5,Jashan,"added pagination todo in inventory route",a6682a1
+2026-03-03,2.0,Neel,"added polling comment in notification dropdown",89db006
+2026-03-04,3.5,Jashan,"added fmtpercent helper in utils",c8d9973
+2026-03-05,2.0,Priyansh,"added reason enum comment in return model",308e279
+2026-03-06,2.5,Neel,"added deeper primary shade to tailwind theme",ffda14f
+2026-03-06,3.0,Jashan,"added export todo comment in reports route",10ad1a0
+2026-03-09,3.0,Priyansh,"improved authorizestore middleware comment",86e8a31
+2026-03-09,2.5,Jashan,"added multi-store todo in returns list route",1c60a92
+2026-03-10,2.0,Neel,"updated catch-all route comment in app router",daad2a5
